@@ -2,13 +2,16 @@ package com.example.jspspike.stockprofittracker;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.RingtoneManager;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.Log;
@@ -54,9 +57,9 @@ public class MainActivity extends AppCompatActivity
     public static ArrayAdapter<Stock> adapter;
     public static AdapterView.OnItemLongClickListener removeListener;
 
-    SharedPreferences preferences;
-    SharedPreferences.Editor editor;
-    Gson gson;
+    static SharedPreferences preferences;
+    static SharedPreferences.Editor editor;
+    static Gson gson;
 
     Menu menu;
 
@@ -75,43 +78,18 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        preferences = getApplicationContext().getSharedPreferences("storage", MODE_PRIVATE);
-        editor = preferences.edit();
-        gson = new Gson();
+        loadStoredData(getApplicationContext());
 
-        String stocksStorage = preferences.getString("Stocks", null);
+        Intent intent = new Intent(MainActivity.this, UpdateHistoryActivity.class);
+        alarmIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (stocksStorage == null) {
-            stocks = new ArrayList<>();
-            quotes = new ArrayList<>();
-        }
-        else {
-            stocks = gson.fromJson(stocksStorage, new TypeToken<ArrayList<Stock>>(){}.getType());
-            updateQuotes();
-            Log.i("stocks", "Found stocks");
-        }
-
-        money = Double.longBitsToDouble(preferences.getLong("Money", Double.doubleToLongBits(0)));
-        profit = calculateTotalProfit();
-
-        String profitsStorage = preferences.getString("ProfitHistory", null);
-
-        if (profitsStorage == null){
-            profitHistory = new ArrayList<>();
-        } else {
-            profitHistory = gson.fromJson(profitsStorage, new TypeToken<ArrayList<DataPoint>>(){}.getType());
-        }
-
-        if (!preferences.getBoolean("AlarmStarted", false)) {
-            alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(this, UpdateHistoryActivity.class);
-            alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        if (alarmManager == null) {
+            alarmManager = (AlarmManager) MainActivity.this.getSystemService(MainActivity.this.ALARM_SERVICE);
 
             Calendar calendar = Calendar.getInstance();
-            calendar.setTimeZone(TimeZone.getTimeZone("EST"));
-            calendar.setTimeInMillis(System.currentTimeMillis());
             calendar.set(Calendar.HOUR_OF_DAY, 16);
             calendar.set(Calendar.MINUTE, 2);
+            calendar.set(Calendar.SECOND, 0);
 
             alarmManager.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, alarmIntent);
             editor.putBoolean("AlarmStarted", true);
@@ -273,6 +251,7 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -431,6 +410,48 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    public static void createNoficiation(Context context) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.icon_stocks)
+                        .setContentTitle("Stock Profit")
+                        .setContentText("Profit " + MainActivity.profit);
+
+        mBuilder.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0, mBuilder.build());
+    }
+
+    public static void loadStoredData(Context context) {
+        preferences = context.getSharedPreferences("storage", MODE_PRIVATE);
+        editor = preferences.edit();
+        gson = new Gson();
+
+        String stocksStorage = preferences.getString("Stocks", null);
+
+        if (stocksStorage == null) {
+            stocks = new ArrayList<>();
+            quotes = new ArrayList<>();
+        }
+        else {
+            stocks = gson.fromJson(stocksStorage, new TypeToken<ArrayList<Stock>>(){}.getType());
+            updateQuotes();
+            Log.i("stocks", "Found stocks");
+        }
+
+        money = Double.longBitsToDouble(preferences.getLong("Money", Double.doubleToLongBits(0)));
+        profit = calculateTotalProfit();
+
+        String profitsStorage = preferences.getString("ProfitHistory", null);
+
+        if (profitsStorage == null){
+            profitHistory = new ArrayList<>();
+        } else {
+            profitHistory = gson.fromJson(profitsStorage, new TypeToken<ArrayList<DataPoint>>(){}.getType());
+        }
     }
 
     public static void updateQuotes() {

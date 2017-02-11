@@ -1,7 +1,9 @@
 package com.example.jspspike.stockprofittracker;
 
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.os.Bundle;
@@ -14,21 +16,22 @@ import com.jjoe64.graphview.series.DataPoint;
 import java.util.Calendar;
 import java.util.Date;
 
+import static android.content.Context.MODE_PRIVATE;
+
 /**
  * Created by jspspike on 12/29/2016.
  */
 
-public class UpdateHistoryActivity extends AppCompatActivity {
+public class UpdateHistoryActivity extends BroadcastReceiver {
 
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
     Gson gson;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onReceive(Context context, Intent intent) {
 
-        super.onCreate(savedInstanceState);
-
+        MainActivity.loadStoredData(context);
         MainActivity.updateQuotes();
 
         MainActivity.profit = MainActivity.calculateTotalProfit();
@@ -36,7 +39,9 @@ public class UpdateHistoryActivity extends AppCompatActivity {
 
         MainActivity.profitHistory.add(new DataPoint(date, MainActivity.profit));
 
-        preferences = getApplicationContext().getSharedPreferences("storage", MODE_PRIVATE);
+        MainActivity.createNoficiation(context);
+
+        preferences = context.getSharedPreferences("storage", MODE_PRIVATE);
         editor = preferences.edit();
         gson = new Gson();
 
@@ -45,17 +50,6 @@ public class UpdateHistoryActivity extends AppCompatActivity {
         editor.putString("ProfitHistory", profitHistoryStorage);
         editor.commit();
 
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.icon_stocks)
-                        .setContentTitle("Stock Profit")
-                        .setContentText("Profit " + MainActivity.profit);
 
-        mBuilder.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        notificationManager.notify(0, mBuilder.build());
-
-        finish();
     }
 }
