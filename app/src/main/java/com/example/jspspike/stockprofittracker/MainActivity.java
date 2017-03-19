@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity
         alarmIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         if (alarmManager == null) {
-            alarmManager = (AlarmManager) MainActivity.this.getSystemService(MainActivity.this.ALARM_SERVICE);
+            alarmManager = (AlarmManager) MainActivity.this.getSystemService(ALARM_SERVICE);
 
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.HOUR_OF_DAY, 16);
@@ -92,8 +92,6 @@ public class MainActivity extends AppCompatActivity
             calendar.set(Calendar.SECOND, 0);
 
             alarmManager.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, alarmIntent);
-            editor.putBoolean("AlarmStarted", true);
-            editor.commit();
         }
 
         else {
