@@ -35,14 +35,12 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.jjoe64.graphview.series.DataPoint;
 
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 import yahoofinance.quotes.stock.StockQuote;

@@ -1,17 +1,11 @@
 package com.example.jspspike.stockprofittracker;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.RingtoneManager;
-import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.support.v7.app.AppCompatActivity;
 
 import com.google.gson.Gson;
-import com.jjoe64.graphview.series.DataPoint;
 
 import java.util.Calendar;
 import java.util.Date;
